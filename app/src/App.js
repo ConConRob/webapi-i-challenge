@@ -7,7 +7,8 @@ class App extends Component {
   state = {
     friends: [],
     inputName: "",
-    inputBio: ""
+    inputBio: "",
+    updateId: null
   };
   componentDidMount() {
     axios.get(url).then(res => this.setState({ friends: res.data }));
@@ -24,8 +25,12 @@ class App extends Component {
     });
   };
 
-  handleUpdate = friend => {
-    const something = "";
+  setUpdate = friend => {
+    this.setState({
+      inputName: friend.name,
+      inputBio: friend.bio,
+      updateId: friend.id
+    });
   };
 
   handleInputNameChange = event => {
@@ -36,17 +41,43 @@ class App extends Component {
     this.setState({ inputBio: event.target.value });
   };
 
-  handleAddFriend = () => {
+  addFriend = () => {
     axios
       .post(url, { name: this.state.inputName, bio: this.state.inputBio })
       .then(res => {
         this.setState(curState => ({
           friends: [...curState.friends, res.data]
-        }))
-        this.setState({inputName:'', inputBio:''})
+        }));
       });
   };
 
+  updateFriend = id => {
+    axios
+      .put(`${url}/${id}`, {
+        name: this.state.inputName,
+        bio: this.state.inputBio
+      })
+      .then(res =>
+        this.setState(cS => {
+          const newFriends = cS.friends.map(friend => {
+            if (friend.id === id) {
+              return res.data.user;
+            }
+            return friend;
+          });
+          return { friends: newFriends };
+        })
+      );
+  };
+
+  handleFriendSubmit = () => {
+    if (this.state.updateId) {
+      this.updateFriend(this.state.updateId);
+    } else {
+      this.addFriend();
+    }
+    this.setState({ inputName: "", inputBio: "", updateId: null });
+  };
   render() {
     return (
       <div className="App">
@@ -61,16 +92,16 @@ class App extends Component {
             onChange={this.handleInputBioChange}
             value={this.state.inputBio}
           />
-          <button onClick={this.handleAddFriend}>Add Friend</button>
+          <button onClick={this.handleFriendSubmit}>
+            {!this.state.updateId ? "Add Friend" : "Update Friend"}
+          </button>
           {this.state.friends.map(friend => (
             <div key={friend.id} className="friend">
               <p>{friend.name}</p>
               <button onClick={() => this.handleDelete(friend.id)}>
                 Delete
               </button>
-              <button onClick={friend => this.handleUpdate(friend)}>
-                Update
-              </button>
+              <button onClick={() => this.setUpdate(friend)}>Update</button>
             </div>
           ))}
         </div>
