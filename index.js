@@ -61,13 +61,12 @@ server.put(`/api/users/:id`, (req,res)=> {
      if(!data){
        res.status(404).json({ message: "The user with the specified ID does not exist." })
      } else {
-       res.status(200).json({message: "The user was updated"})
+       res.status(200).json({message: "The user was updated", user: {...user, id}})
      }
    })
    .catch(()=> res.status(500).json({ error: "The user information could not be modified." }))
 })
-// server.delete('/api/users/:id', (req,res => {
 
-// }))
+
 
 server.listen(4000, () => console.log('Listening on port 4000'));
